@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Badge, Button, Card, TextField } from '@/components/ui';
-import { daysOverdue, describeRule, parseDate, today as todayStr } from '@/lib/recurrence';
+import { addDays, daysOverdue, describeRule, parseDate, ruleOf, today as todayStr } from '@/lib/recurrence';
 import type { TaskWithRelations } from '@/lib/types';
 
 import { productTypeMeta } from '../products/hooks';
@@ -44,11 +44,7 @@ export function DueTaskCard({ task }: { task: TaskWithRelations }) {
               {task.plants.map((p) => p.name).join(', ')}
             </Text>
           ) : null}
-          <Text className="text-xs text-leaf-500">{describeRule({
-            frequency: task.frequency,
-            interval: task.interval,
-            repeatFrom: task.repeat_from,
-          })}</Text>
+          <Text className="text-xs text-leaf-500">{describeRule(ruleOf(task))}</Text>
         </View>
         {overdueDays > 0 ? (
           <Badge tone="amber" label={`${overdueDays}d overdue`} />
@@ -103,15 +99,7 @@ export function DueTaskCard({ task }: { task: TaskWithRelations }) {
               title="Yesterday"
               size="sm"
               variant="ghost"
-              onPress={() => {
-                const d = parseDate(todayStr());
-                d.setUTCDate(d.getUTCDate() - 1);
-                setDateValue(
-                  `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(
-                    d.getUTCDate(),
-                  ).padStart(2, '0')}`,
-                );
-              }}
+              onPress={() => setDateValue(addDays(todayStr(), -1))}
             />
             <Button
               title="Log completion"

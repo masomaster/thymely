@@ -19,4 +19,6 @@ export const queryKeys = {
   completions: (taskId?: string) =>
     taskId ? (['completions', taskId] as const) : (['completions'] as const),
   catalogSearch: (q: string) => ['catalog', 'search', q] as const,
+  shares: ['shares'] as const,
+  share: (token?: string) => ['share', token] as const,
 };

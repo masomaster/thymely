@@ -10,7 +10,7 @@ import {
   useSnoozeTask,
 } from '@/features/today/hooks';
 import { useDeleteTask, useSetTaskActive, useTask } from '@/features/tasks/hooks';
-import { describeRule, daysOverdue } from '@/lib/recurrence';
+import { describeRule, daysOverdue, ruleOf } from '@/lib/recurrence';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,13 +49,7 @@ export default function TaskDetailScreen() {
           <Text className="text-3xl">{emoji}</Text>
           <View className="flex-1">
             <Text className="text-xl font-bold text-leaf-900">{task.title}</Text>
-            <Text className="text-sm text-leaf-600">
-              {describeRule({
-                frequency: task.frequency,
-                interval: task.interval,
-                repeatFrom: task.repeat_from,
-              })}
-            </Text>
+            <Text className="text-sm text-leaf-600">{describeRule(ruleOf(task))}</Text>
           </View>
         </View>
         {task.product ? <Badge tone="soil" label={task.product.name} /> : null}

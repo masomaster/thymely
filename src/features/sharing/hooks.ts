@@ -1,26 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform } from 'react-native';
 
+import { queryKeys } from '@/lib/queryClient';
 import { getOwnerId, supabase } from '@/lib/supabase';
+import type { Database, ShareRow } from '@/lib/types';
 
-export interface Share {
-  id: string;
-  owner_id: string;
-  token: string;
-  kind: 'read_only' | 'caretaker';
-  expires_at: string | null;
-  created_at: string;
-}
-
-export interface SharedTask {
-  id: string;
-  title: string;
-  frequency: string;
-  interval: number;
-  repeat_from: string;
-  next_due_date: string;
-  active: boolean;
-}
+export type Share = ShareRow;
+export type SharedTask =
+  Database['public']['Functions']['get_shared_schedule']['Returns'][number];
 
 /** Build the public URL a share token resolves to. */
 export function shareUrl(token: string): string {
@@ -32,7 +19,7 @@ export function shareUrl(token: string): string {
 
 export function useShares() {
   return useQuery({
-    queryKey: ['shares'],
+    queryKey: queryKeys.shares,
     queryFn: async (): Promise<Share[]> => {
       const ownerId = await getOwnerId();
       const { data, error } = await supabase
@@ -41,7 +28,7 @@ export function useShares() {
         .eq('owner_id', ownerId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Share[];
+      return data ?? [];
     },
   });
 }
@@ -63,9 +50,9 @@ export function useCreateShare() {
         .select('*')
         .single();
       if (error) throw error;
-      return data as Share;
+      return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['shares'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.shares }),
   });
 }
 
@@ -76,21 +63,21 @@ export function useRevokeShare() {
       const { error } = await supabase.from('shares').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['shares'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.shares }),
   });
 }
 
 /** Resolve a share token to its (read-only) schedule via a security-definer RPC. */
 export function useSharedSchedule(token: string | undefined) {
   return useQuery({
-    queryKey: ['share', token],
+    queryKey: queryKeys.share(token),
     enabled: Boolean(token),
     queryFn: async (): Promise<SharedTask[]> => {
       const { data, error } = await supabase.rpc('get_shared_schedule', {
         share_token: token!,
       });
       if (error) throw error;
-      return (data ?? []) as SharedTask[];
+      return data ?? [];
     },
   });
 }

@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Badge, Card, ConfigBanner, Screen } from '@/components/ui';
 import { useAllCompletions } from '@/features/today/hooks';
 import { useTasks } from '@/features/tasks/hooks';
-import { addInterval, compareDates, formatDate, parseDate, today } from '@/lib/recurrence';
+import { addInterval, compareDates, formatDate, today } from '@/lib/recurrence';
 import type { Completion, TaskWithRelations } from '@/lib/types';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];

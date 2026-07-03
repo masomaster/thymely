@@ -1,26 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { queryKeys } from '@/lib/queryClient';
-import {
-  addDays,
-  nextDueDate,
-  today as todayStr,
-  type RecurrenceRule,
-} from '@/lib/recurrence';
+import { addDays, nextDueDate, ruleOf, today as todayStr } from '@/lib/recurrence';
 import { supabase } from '@/lib/supabase';
-import type { Completion, Task, TaskWithRelations } from '@/lib/types';
+import type { Completion, Task } from '@/lib/types';
 
 import { useTasks } from '../tasks/hooks';
-
-function ruleOf(task: Task): RecurrenceRule {
-  return { frequency: task.frequency, interval: task.interval, repeatFrom: task.repeat_from };
-}
 
 /** Active tasks that are due on/before the reference date, soonest first. */
 export function useTodayTasks(reference: string = todayStr()) {
   const query = useTasks(false);
-  const dueTasks = (query.data ?? []).filter((t) => t.next_due_date <= reference);
-  return { ...query, data: dueTasks } as typeof query & { data: TaskWithRelations[] };
+  const data = useMemo(
+    () => (query.data ?? []).filter((t) => t.next_due_date <= reference),
+    [query.data, reference],
+  );
+  return { ...query, data };
 }
 
 export interface CompleteTaskInput {

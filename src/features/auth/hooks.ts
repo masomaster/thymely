@@ -6,6 +6,14 @@ import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
+/** The URL Supabase should redirect back to after a magic-link / OAuth flow. */
+function authRedirectTo(): string | undefined {
+  if (Platform.OS === 'web') {
+    return typeof window !== 'undefined' ? window.location.origin : undefined;
+  }
+  return Linking.createURL('/');
+}
+
 /** Tracks the current Supabase auth session (null until Phase 2 auth is used). */
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
@@ -35,13 +43,9 @@ export function useSession() {
 export function useSignInWithEmail() {
   return useMutation({
     mutationFn: async (email: string) => {
-      const emailRedirectTo =
-        Platform.OS === 'web'
-          ? (typeof window !== 'undefined' ? window.location.origin : undefined)
-          : Linking.createURL('/');
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { emailRedirectTo },
+        options: { emailRedirectTo: authRedirectTo() },
       });
       if (error) throw error;
     },
@@ -52,13 +56,9 @@ export function useSignInWithEmail() {
 export function useSignInWithOAuth() {
   return useMutation({
     mutationFn: async (provider: 'apple' | 'google') => {
-      const redirectTo =
-        Platform.OS === 'web'
-          ? (typeof window !== 'undefined' ? window.location.origin : undefined)
-          : Linking.createURL('/');
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo, skipBrowserRedirect: Platform.OS !== 'web' },
+        options: { redirectTo: authRedirectTo(), skipBrowserRedirect: Platform.OS !== 'web' },
       });
       if (error) throw error;
       // On native, open the returned URL in a browser (expo-web-browser) to

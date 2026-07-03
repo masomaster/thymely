@@ -28,6 +28,22 @@ export interface RecurrenceRule {
 /** A date-only string in `YYYY-MM-DD` form. */
 export type DateString = string;
 
+/**
+ * Adapt a persisted task row (snake_case `repeat_from`) into a `RecurrenceRule`.
+ * Centralizes the mapping that several screens would otherwise rebuild inline.
+ */
+export function ruleOf(task: {
+  frequency: Frequency;
+  interval: number;
+  repeat_from: RepeatFrom;
+}): RecurrenceRule {
+  return {
+    frequency: task.frequency,
+    interval: task.interval,
+    repeatFrom: task.repeat_from,
+  };
+}
+
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Parse a `YYYY-MM-DD` string into a Date at UTC midnight. */
@@ -133,7 +149,6 @@ export function nextDueDate(
   const { frequency, interval, repeatFrom } = rule;
 
   if (repeatFrom === 'completion') {
-    // Simply measure the next occurrence from the completion date.
     return addInterval(completedOn, frequency, interval);
   }
 
